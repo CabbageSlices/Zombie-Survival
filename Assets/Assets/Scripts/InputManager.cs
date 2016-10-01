@@ -12,7 +12,7 @@ public class InputManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 	    
-        if(Input.GetMouseButtonDown(0) && onWeaponPrimary != null) { 
+        if(Input.GetMouseButton(0) && onWeaponPrimary != null) { 
             onWeaponPrimary();
         }
 

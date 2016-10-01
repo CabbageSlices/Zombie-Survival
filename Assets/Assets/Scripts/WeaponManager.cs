@@ -122,6 +122,9 @@ public class WeaponManager : MonoBehaviour {
         //for now just play the fire animation
         anim.SetTrigger(firedTriggerHash);
         lastFiredTime = Time.time;
+
+        //handle ammo
+        equippedWeaponProperty.bulletsInCurrentMagazine -= 1;
     }
 
     void checkAimDownSight(bool isAimingDownSight) {
