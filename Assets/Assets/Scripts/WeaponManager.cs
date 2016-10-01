@@ -83,6 +83,8 @@ public class WeaponManager : MonoBehaviour {
         }
     }
 
+    //Takes a given weapon and places it onto the given player
+    //useful if you are picking up a weapon on the ground, which is in the interactable layer, and equipping it, which is the weapon layer
     void changeWeaponLayer(GameObject weapon, LayerMask newLayer) {
 
         Transform[] objectTransforms = weapon.GetComponentsInChildren<Transform>(true);
