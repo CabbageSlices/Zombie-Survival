@@ -4,9 +4,12 @@ using System.Collections;
 public class WeaponManager : MonoBehaviour {
 
     private GameObject weaponOwner;
+    private Camera playerCamera;
     private GameObject equippedWeapon = null;
     private GunProperty equippedWeaponProperty = null;
     private Animator anim;
+
+    public GameObject cube;
 
     private int isAimingDownSightsHash = Animator.StringToHash("IsAimingDownSights");
     private int firedTriggerHash = Animator.StringToHash("Fired");
@@ -19,8 +22,11 @@ public class WeaponManager : MonoBehaviour {
 
         //find the game object that is holding this weapon. This will the highest object in the transform heirchy
         weaponOwner = gameObject.transform.root.gameObject;
+        playerCamera = weaponOwner.GetComponentInChildren<Camera>() as Camera;
         
         subscribeToEvents();
+
+        unequipCurrentWeapon();
     }
 
     void OnEnable() {
@@ -70,6 +76,10 @@ public class WeaponManager : MonoBehaviour {
     }
 
     void unequipCurrentWeapon() {
+
+        //if you have a child transform then the child must be a weapon, so make it the equipped weapon
+        if(transform.childCount != 0)
+            equippedWeapon = transform.GetChild(0).gameObject;
 
         if(equippedWeapon != null) {
 
@@ -125,6 +135,24 @@ public class WeaponManager : MonoBehaviour {
 
         //handle ammo
         equippedWeaponProperty.bulletsInCurrentMagazine -= 1;
+
+        //fire a raycast from player camera's center in the direction of the camera
+        Vector3 raycastOrigin = playerCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.5f));
+        Vector3 raycastDirection = playerCamera.transform.TransformDirection(Vector3.forward);
+        RaycastHit targetHit;
+
+        if(Physics.Raycast(raycastOrigin, raycastDirection, out targetHit, equippedWeaponProperty.range)) {
+
+            //if the object has a healthmanager then damage it
+            Component healthManagerComponent = targetHit.transform.gameObject.GetComponent<HealthManager>();
+
+            //no health manager, don't do anything to this object
+            if(healthManagerComponent == null)
+                return;
+
+            HealthManager healthManager = (HealthManager)healthManagerComponent;
+            healthManager.getHit(equippedWeaponProperty.damage);
+        }
     }
 
     void checkAimDownSight(bool isAimingDownSight) {
