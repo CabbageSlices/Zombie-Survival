@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent(typeof(ZombieNavigationController))]
-public class ZombieAnimationController : MonoBehaviour {
+public class ZombieController : MonoBehaviour {
 
     private ZombieNavigationController navigationController;
     private Animator modelAnimator;
