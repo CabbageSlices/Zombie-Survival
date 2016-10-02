@@ -44,6 +44,8 @@ public class InteractWithObjects : MonoBehaviour {
 
             interactableTarget = null;
 
+            Debug.DrawLine(rayOrigin, rayOrigin + rayDirection * 10, Color.red, objectCheckDelay);
+
             if(Physics.Raycast(rayOrigin, rayDirection, out target, MaxInteractionDistace, layerIdOfInteractable)) {
 
                 //the desired target could be the object hit by the raycast, or it could be the parent of the object hit by the raycast

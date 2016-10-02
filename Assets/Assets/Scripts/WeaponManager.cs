@@ -115,7 +115,7 @@ public class WeaponManager : MonoBehaviour {
 
     bool checkCanFire() {
 
-        if(equippedWeapon == null)
+        if(equippedWeapon == null || equippedWeaponProperty == null)
             return false;
 
         if(Time.time - lastFiredTime < equippedWeaponProperty.fireDelay)

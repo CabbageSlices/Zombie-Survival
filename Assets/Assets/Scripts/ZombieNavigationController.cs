@@ -1,12 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class ZombieNavigation : MonoBehaviour {
+public class ZombieNavigationController : MonoBehaviour {
 
+    NavMeshAgent navMeshAgent;
 	// Use this for initialization
 	void Start () {
-	
-	}
+	    
+        navMeshAgent = GetComponent<NavMeshAgent>() as NavMeshAgent;
+    }
 	
 	// Update is called once per frame
 	void Update () {
