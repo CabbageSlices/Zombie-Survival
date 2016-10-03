@@ -39,8 +39,6 @@ public class HealthManager : MonoBehaviour {
                 onDeath();
 
             deathResponseActivated = true;
-
-            Object.Destroy(gameObject);
         }
     }
 }
