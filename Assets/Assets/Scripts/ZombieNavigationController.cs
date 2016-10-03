@@ -7,11 +7,21 @@ public class ZombieNavigationController : MonoBehaviour {
     GameObject player;
 
     //how far the zombie needs to be from the target before it can stop moving towards it
-    public float minDistanceToTarget = 8.0f;
+    public float minDistanceToTarget = 5.0f;
 
     //how long it takes the zombie to track the player again, in seconds
     public float targetRecalulationDelay = 0.75f;
     private float lastTargetCalculationTime = 0.0f; //time that the last target was calculated
+
+    //if an external script wants to stop navigation, set this to true
+    bool isNavigationStopped = false;
+
+    public Vector3 velocity {
+        get {
+
+            return navMeshAgent.velocity;
+        }
+    }
 
 	// Use this for initialization
 	void Start () {
@@ -28,7 +38,7 @@ public class ZombieNavigationController : MonoBehaviour {
             recalculateTarget();
         }
         
-        if(isNearDestination()) {
+        if(shouldStopNavigation()) {
 
             navMeshAgent.Stop();
         }
@@ -48,10 +58,10 @@ public class ZombieNavigationController : MonoBehaviour {
 
         Vector3 targetPosition = player.transform.position;
 
-        //if zombie is close enough to player then don't track 
+        //if zombie is close enough to player, and he is facing the player, then don't track
         Vector3 vectorToPlayer = targetPosition - transform.position;
 
-        if(vectorToPlayer.sqrMagnitude < minDistanceToTarget * minDistanceToTarget ) {
+        if(vectorToPlayer.sqrMagnitude < minDistanceToTarget * minDistanceToTarget && Vector3.Dot(transform.forward, vectorToPlayer.normalized) >= 0.9) {
 
             return;
         }
@@ -61,13 +71,30 @@ public class ZombieNavigationController : MonoBehaviour {
         if(navMeshAgent.CalculatePath(targetPosition, path)) {
 
             navMeshAgent.SetPath(path);
-            navMeshAgent.Resume();
+
+            if(!shouldStopNavigation())
+                navMeshAgent.Resume();
         }
     }
 
-    bool isNearDestination() {
+    public bool isNearDestination() {
         
         Vector3 vectorToTarget = navMeshAgent.pathEndPosition - transform.position;
-        return vectorToTarget.sqrMagnitude < minDistanceToTarget * minDistanceToTarget;
+        return vectorToTarget.sqrMagnitude < minDistanceToTarget * minDistanceToTarget && Vector3.Dot(transform.forward, vectorToTarget.normalized) >= 0.9;
+    }
+
+    bool shouldStopNavigation() {
+
+        return isNearDestination() || isNavigationStopped;
+    }
+
+    public void stopNavigation() {
+
+        isNavigationStopped = true;
+    }
+
+    public void resumeNavigation() {
+
+        isNavigationStopped = false;
     }
 }

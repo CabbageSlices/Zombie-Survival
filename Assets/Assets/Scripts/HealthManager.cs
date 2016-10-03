@@ -12,7 +12,7 @@ public class HealthManager : MonoBehaviour {
     }
 
     [SerializeField]
-    private int _health;
+    private int _health = 10;
 
     private bool deathResponseActivated = false;
 
