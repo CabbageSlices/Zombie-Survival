@@ -41,8 +41,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private float m_NextStep;
         private bool m_Jumping;
         private AudioSource m_AudioSource;
-        private float lastHitTime = 0;
-        private float invinsibilityLength = 1.0f;
 
         // Use this for initialization
         private void Start()
@@ -61,13 +59,12 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void OnTriggerEnter(Collider other) {
 
-            if(other.gameObject.tag == "Zombie" && Time.time - lastHitTime > invinsibilityLength) {
+            if(other.gameObject.tag == "Zombie") {
 
                 //player jsut got hit by a zombie
                 other.enabled = false;
                 GetComponent<HealthManager>().getHit(2);
                 Debug.Log("You've Been Hit!");
-                lastHitTime = Time.time;
             }
         }
 

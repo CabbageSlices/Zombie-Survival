@@ -6,6 +6,7 @@ public class ZombieController : MonoBehaviour {
 
     private ZombieNavigationController navigationController;
     private Animator animator;
+    private BoxCollider hitbox;
 
     private int speedHash = Animator.StringToHash("Speed");
     private int attackTriggerHash = Animator.StringToHash("Attack");
@@ -22,12 +23,18 @@ public class ZombieController : MonoBehaviour {
 	    
         animator = GetComponent<Animator>() as Animator;
         navigationController = GetComponent<ZombieNavigationController>() as ZombieNavigationController;
+        hitbox = GetComponent<BoxCollider>() as BoxCollider;
 
         if(navigationController == null)
             Debug.LogError(gameObject.name + " does not have a navigation controller.");
 
         if(animator == null)
             Debug.LogError(gameObject.name + " does not have an animation controller, even though it has an animation controller script.");
+
+        if(hitbox == null)
+            Debug.LogError(gameObject.name + " does not have a damage hitbox");
+        
+        disableHitBox();
 	}
 	
 	// Update is called once per frame
@@ -51,5 +58,15 @@ public class ZombieController : MonoBehaviour {
         animator.SetTrigger(attackTriggerHash);
         lastAttackTime = Time.time;
         navigationController.stopNavigation();
+    }
+
+    public void enableHitBox() {
+
+        hitbox.enabled = true;
+    }
+
+    public void disableHitBox() {
+
+        hitbox.enabled = false;
     }
 }
