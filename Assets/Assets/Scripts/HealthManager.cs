@@ -10,9 +10,9 @@ public class HealthManager : MonoBehaviour {
 
         set { _health = value >= 0 ? value : 0; }
     }
-
-    [SerializeField]
-    private int _health = 10;
+    
+    public int initialHealth = 10;
+    private int _health;
 
     private bool deathResponseActivated = false;
 
@@ -21,8 +21,14 @@ public class HealthManager : MonoBehaviour {
     public event Response onDeath;
 
     //event triggered when this entity get's hit (could do an animation, trigger a sound effect, etc.)
-    public delegate void HitResponse(int damageReceived);
+    //fractionHealthRemaining = what fraction of initialHealth is remaining
+    public delegate void HitResponse(int damageReceived, float fractionHealthRemaining);
     public event HitResponse onHit;
+
+    public void Start() {
+
+        Health = initialHealth;
+    }
 
     //receive damage and lose health
     //triggers the onHit event, and if the health reaches 0 it will trigger the onDeath event
@@ -31,7 +37,7 @@ public class HealthManager : MonoBehaviour {
         Health = Health - damage;
 
         if(onHit != null)
-            onHit(damage);
+            onHit(damage, (float) Health / (float) initialHealth);
 
         if (Health == 0 && !deathResponseActivated) {
 
