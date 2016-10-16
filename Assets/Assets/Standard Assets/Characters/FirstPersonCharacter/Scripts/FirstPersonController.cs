@@ -28,6 +28,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
         [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
 
+        public delegate void OnHit(Vector3 playerPosition, Vector3 playerDirection, Vector3 attackerPosition, Vector3 attackerDirection);
+        public event OnHit onHit;
+
         private Camera m_Camera;
         private bool m_Jump;
         private float m_YRotation;
@@ -64,7 +67,9 @@ namespace UnityStandardAssets.Characters.FirstPerson
                 //player jsut got hit by a zombie
                 other.enabled = false;
                 GetComponent<HealthManager>().getHit(2);
-                Debug.Log("You've Been Hit!");
+
+                if(onHit != null)
+                    onHit(transform.position, transform.forward, other.transform.position, other.transform.forward);
             }
         }
 
