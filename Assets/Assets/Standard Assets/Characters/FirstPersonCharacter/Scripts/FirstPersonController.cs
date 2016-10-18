@@ -26,10 +26,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         [SerializeField] private float m_StepInterval;
         [SerializeField] private AudioClip[] m_FootstepSounds;    // an array of footstep sounds that will be randomly selected from.
         [SerializeField] private AudioClip m_JumpSound;           // the sound played when character leaves the ground.
-        [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground.
-
-        public delegate void OnHit(Vector3 playerPosition, Vector3 playerDirection, Vector3 attackerPosition, Vector3 attackerDirection);
-        public event OnHit onHit;
+        [SerializeField] private AudioClip m_LandSound;           // the sound played when character touches back on ground
 
         private Camera m_Camera;
         private bool m_Jump;
@@ -59,20 +56,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
             m_AudioSource = GetComponent<AudioSource>();
 			m_MouseLook.Init(transform , m_Camera.transform);
         }
-
-        private void OnTriggerEnter(Collider other) {
-
-            if(other.gameObject.tag == "Zombie") {
-
-                //player jsut got hit by a zombie
-                other.enabled = false;
-                GetComponent<HealthManager>().getHit(2);
-
-                if(onHit != null)
-                    onHit(transform.position, transform.forward, other.transform.position, other.transform.forward);
-            }
-        }
-
 
         // Update is called once per frame
         private void Update()

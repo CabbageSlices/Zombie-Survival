@@ -16,7 +16,14 @@ public class DamageIndicatorUIController : MonoBehaviour {
     private HealthManager playerHealthManager;
 
     [SerializeField]
-    private UnityStandardAssets.Characters.FirstPerson.FirstPersonController fpsController;
+    GameObject player;
+
+    [SerializeField]
+    PlayerController playerController;
+
+    //the last attacker that attacked the zombie
+    //used to recalculate the rotation of the attacker position indicator
+    private GameObject lastAttacker;
 
     public Images images = new Images();
 
@@ -27,10 +34,20 @@ public class DamageIndicatorUIController : MonoBehaviour {
     public float screenFlashSpeed = 20;
 
     //how long the attacker's location indicator should be drawn, in seconds
-    float attackerLocationIndicatorDisplayLength = 0.5f;
+    [SerializeField] float attackerLocationIndicatorDisplayLength = 0.5f;
     float timeAttackerLocationIndicatorStartedDrawing = -10;
 
     void Start() {
+
+        player = GameObject.FindWithTag("Player");
+
+        if (player == null)
+            Debug.Log("Player not found");
+
+        playerController = player.GetComponent<PlayerController>() as PlayerController;
+
+        if(playerController == null)
+            Debug.Log("Player has no player controller script");
 
         if (images.damageOverlayImage == null)
             Debug.Log("This object is missing the image component in the child DamageOverlayImage");
@@ -44,18 +61,20 @@ public class DamageIndicatorUIController : MonoBehaviour {
         if (playerHealthManager == null)
             Debug.Log("The object is missing player's health manager.");
 
+        if(player == null)
+            Debug.Log("Player not found");
+
         subscribeToEvents();
 
-        setImageTransparency(images.damageOverlayImage, 0);
-        setImageTransparency(images.screenFlashOverlayImage, 0);
-        setImageTransparency(images.attackerLocationIndicatorImage, 0);
+        setImageAlpha(images.damageOverlayImage, 0);
+        setImageAlpha(images.screenFlashOverlayImage, 0);
+        setImageAlpha(images.attackerLocationIndicatorImage, 0);
     }
 
 
     void Update() {
 
         updateScreenFlashOverlay();
-        updateAttackerLocationIndicator();
     }
 
     void updateScreenFlashOverlay() {
@@ -78,11 +97,6 @@ public class DamageIndicatorUIController : MonoBehaviour {
         images.screenFlashOverlayImage.color = newColor;
     }
 
-    void updateAttackerLocationIndicator() {
-        
-        setImageTransparency(images.attackerLocationIndicatorImage, System.Convert.ToSingle(isAttackerLocationIndicatorDrawn()) );
-    }
-
     void OnEnable() {
 
         subscribeToEvents();
@@ -96,14 +110,14 @@ public class DamageIndicatorUIController : MonoBehaviour {
     void subscribeToEvents() {
 
         playerHealthManager.onHit += onHit;
-        fpsController.onHit += onHit;
+        playerController.onHit += onHit;
 
     }
 
     void unsubscribeFromEvents() {
 
         playerHealthManager.onHit -= onHit;
-        fpsController.onHit -= onHit;
+        playerController.onHit -= onHit;
     }
 
     //this is a response to the event from the health manager when the player receives damage
@@ -111,7 +125,7 @@ public class DamageIndicatorUIController : MonoBehaviour {
 
         //player just got hit, start by setting the desired transparency of the overlay
         //when players healht is 0, effect should be fully visable, when player has 100% health, it should be invisible
-        setImageTransparency(images.damageOverlayImage, Mathf.Clamp(1 - fractionHealthRemaining, 0, 1));
+        setImageAlpha(images.damageOverlayImage, Mathf.Clamp(1 - fractionHealthRemaining, 0, 1));
 
         //now we want to try applying a flashing effect, only if the screen isn't flashing already
         if (!isScreenFlashing())
@@ -119,31 +133,56 @@ public class DamageIndicatorUIController : MonoBehaviour {
     }
     
     //this is a response to the event from the player when he gets hit by some entity (collision event)
-    void onHit(Vector3 playerPosition, Vector3 playerDirection, Vector3 attackerPosition, Vector3 attackerDirection) {
+    void onHit(GameObject collisionFunctionCallerObject, Collider otherObjectCollider) { 
 
-        //determine what direction the attack came from, we only care about its position on the x-z plane
-        Vector2 directionToAttacker = new Vector2(attackerPosition.x, attackerPosition.z) - new Vector2(playerPosition.x, playerPosition.z);
-        directionToAttacker.Normalize();
-
-        //direction of player from birds eye view
-        Vector2 playerDirectionBirdsEye = new Vector2(playerDirection.x, playerDirection.z);
-
-        float dotAngle = Vector2.Dot(playerDirectionBirdsEye, directionToAttacker);
-        float detAngle = playerDirectionBirdsEye.x * directionToAttacker.y - directionToAttacker.x * playerDirectionBirdsEye.y;
-        float angle = Mathf.Atan2(detAngle, dotAngle) * 180.0f / 3.1415f;
-        
-        
-        images.attackerLocationIndicatorImage.transform.rotation = Quaternion.Euler(0, 0, angle);
-
-        Debug.Log(playerDirectionBirdsEye.ToString() + "  " + directionToAttacker.ToString());
+        lastAttacker = otherObjectCollider.gameObject;
 
         drawAttackerLocationIndicator();
+        StartCoroutine(updateAttackerLocationIndicator());
     }
 
-    void setImageTransparency(Image image, float transparency) {
+    //rotate the attacker location indicator to point towards the position of the last attacker to hit the player
+    IEnumerator updateAttackerLocationIndicator() {
+
+        //how often the indicator's rotation should be updated
+        float updateDelay = attackerLocationIndicatorDisplayLength / 10;
+
+        //cache the transform of the last attacker
+        Transform attackerLocationIndicatorTransform = images.attackerLocationIndicatorImage.transform;
+
+        //set the transparency to 1 so we can see the location indicator
+        setImageAlpha(images.attackerLocationIndicatorImage, 1);
+
+        while (isAttackerLocationIndicatorDrawn()) {
+
+            Vector3 attackerPosition = lastAttacker.transform.position;
+            Vector3 playerPosition = player.transform.position;
+            Vector3 playerDirection = player.transform.forward;
+
+            //determine what direction the attack came from, we only care about its position on the x-z plane
+            Vector2 directionToAttacker = new Vector2(attackerPosition.x, attackerPosition.z) - new Vector2(playerPosition.x, playerPosition.z);
+            directionToAttacker.Normalize();
+
+            //direction of player from birds eye view
+            Vector2 playerDirectionBirdsEye = new Vector2(playerDirection.x, playerDirection.z);
+
+            float dotAngle = Vector2.Dot(playerDirectionBirdsEye, directionToAttacker);
+            float detAngle = playerDirectionBirdsEye.x * directionToAttacker.y - directionToAttacker.x * playerDirectionBirdsEye.y;
+            float angle = Mathf.Atan2(detAngle, dotAngle) * 180.0f / 3.1415f;
+
+            attackerLocationIndicatorTransform.rotation = Quaternion.Euler(0, 0, angle);
+
+            yield return new WaitForSeconds(updateDelay);
+        }
+
+        //hide the indicator
+        setImageAlpha(images.attackerLocationIndicatorImage, 0);
+    }
+
+    void setImageAlpha(Image image, float alpha) {
 
         Vector4 newColor = image.color;
-        newColor.w = transparency;
+        newColor.w = alpha;
         image.color = newColor;
     }
 
