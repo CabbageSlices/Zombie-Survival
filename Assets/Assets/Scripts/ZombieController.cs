@@ -57,7 +57,7 @@ public class ZombieController : MonoBehaviour {
 
         animator.SetTrigger(attackTriggerHash);
         lastAttackTime = Time.time;
-        navigationController.stopNavigation();
+        navigationController.stopTranslation();
     }
 
     public void enableHitBox() {

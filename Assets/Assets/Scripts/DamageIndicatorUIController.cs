@@ -145,7 +145,7 @@ public class DamageIndicatorUIController : MonoBehaviour {
     IEnumerator updateAttackerLocationIndicator() {
 
         //how often the indicator's rotation should be updated
-        float updateDelay = attackerLocationIndicatorDisplayLength / 10;
+        float updateDelay = attackerLocationIndicatorDisplayLength / 20;
 
         //cache the transform of the last attacker
         Transform attackerLocationIndicatorTransform = images.attackerLocationIndicatorImage.transform;

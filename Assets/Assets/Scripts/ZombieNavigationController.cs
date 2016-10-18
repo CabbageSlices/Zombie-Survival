@@ -38,9 +38,9 @@ public class ZombieNavigationController : MonoBehaviour {
             recalculateTarget();
         }
         
-        if(shouldStopNavigation()) {
+        if(shouldStopTranslation()) {
 
-            navMeshAgent.Stop();
+            navMeshAgent.velocity = new Vector3(0, 0, 0);
         }
 	}
 
@@ -71,9 +71,6 @@ public class ZombieNavigationController : MonoBehaviour {
         if(navMeshAgent.CalculatePath(targetPosition, path)) {
 
             navMeshAgent.SetPath(path);
-
-            if(!shouldStopNavigation())
-                navMeshAgent.Resume();
         }
     }
 
@@ -83,17 +80,17 @@ public class ZombieNavigationController : MonoBehaviour {
         return vectorToTarget.sqrMagnitude < minDistanceToTarget * minDistanceToTarget && Vector3.Dot(transform.forward, vectorToTarget.normalized) >= 0.9;
     }
 
-    bool shouldStopNavigation() {
+    bool shouldStopTranslation() {
 
         return isNearDestination() || isNavigationStopped;
     }
 
-    public void stopNavigation() {
+    public void stopTranslation() {
 
         isNavigationStopped = true;
     }
 
-    public void resumeNavigation() {
+    public void resumeTranslation() {
 
         isNavigationStopped = false;
     }
