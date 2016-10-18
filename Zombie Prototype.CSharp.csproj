@@ -64,16 +64,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Assets\Downloaded\Medieval_House\Standard Assets\Character Controllers\Sources\Scripts\MouseLook.cs" />
+    <Compile Include="Assets\Assets\Scripts\DamageIndicatorController.cs" />
+    <Compile Include="Assets\Assets\Scripts\DamageIndicatorUIController.cs" />
     <Compile Include="Assets\Assets\Scripts\GunProperty.cs" />
+    <Compile Include="Assets\Assets\Scripts\HealthManager.cs" />
     <Compile Include="Assets\Assets\Scripts\IinteractionHandler.cs" />
     <Compile Include="Assets\Assets\Scripts\InputManager.cs" />
     <Compile Include="Assets\Assets\Scripts\InteractWithObjects.cs" />
     <Compile Include="Assets\Assets\Scripts\InteractableAbstract.cs" />
     <Compile Include="Assets\Assets\Scripts\OpenCloseInteraction.cs" />
     <Compile Include="Assets\Assets\Scripts\PickUpInteraction.cs" />
+    <Compile Include="Assets\Assets\Scripts\PlayerController.cs" />
+    <Compile Include="Assets\Assets\Scripts\RootMotionHandler.cs" />
     <Compile Include="Assets\Assets\Scripts\ScreenUIManager.cs" />
     <Compile Include="Assets\Assets\Scripts\WeaponManager.cs" />
-    <Compile Include="Assets\Assets\Scripts\ZombieNavigation.cs" />
+    <Compile Include="Assets\Assets\Scripts\ZombieController.cs" />
+    <Compile Include="Assets\Assets\Scripts\ZombieNavigationController.cs" />
     <Compile Include="Assets\Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\FirstPersonController.cs" />
     <Compile Include="Assets\Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\HeadBob.cs" />
     <Compile Include="Assets\Assets\Standard Assets\Characters\FirstPersonCharacter\Scripts\MouseLook.cs" />
