@@ -8,15 +8,16 @@ public class WeaponManager : MonoBehaviour {
     private GameObject equippedWeapon = null;
     private GunProperty equippedWeaponProperty = null;
     private Animator anim;
-
-    public GameObject cube;
-
+    private ScreenUIManager screenUIManager;
+    
     private int isAimingDownSightsHash = Animator.StringToHash("IsAimingDownSights");
     private int firedTriggerHash = Animator.StringToHash("Fired");
 
     private float lastFiredTime = 0;
 
     void Start() {
+
+        screenUIManager = GameObject.Find("ScreenUI").GetComponent<ScreenUIManager>() as ScreenUIManager;
 
         anim = gameObject.GetComponent<Animator>();
 
@@ -73,6 +74,8 @@ public class WeaponManager : MonoBehaviour {
         changeWeaponLayer(weapon, gameObject.layer);
         weapon.transform.localPosition = new Vector3(0, 0, 0);
         weapon.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
+        screenUIManager.showAmmoDisplay(equippedWeaponProperty.bulletsInCurrentMagazine, equippedWeaponProperty.remainingBullets);
     }
 
     void unequipCurrentWeapon() {
@@ -91,6 +94,8 @@ public class WeaponManager : MonoBehaviour {
             changeWeaponLayer(equippedWeapon, LayerMask.NameToLayer("Interactable"));
             equippedWeapon.transform.rotation = Quaternion.Euler(0, 0, 90);
         }
+
+        screenUIManager.hideAmmoDisplay();
     }
 
     //Takes a given weapon and places it onto the given player
@@ -135,6 +140,7 @@ public class WeaponManager : MonoBehaviour {
 
         //handle ammo
         equippedWeaponProperty.bulletsInCurrentMagazine -= 1;
+        screenUIManager.setAmmoDisplay(equippedWeaponProperty.bulletsInCurrentMagazine, equippedWeaponProperty.remainingBullets);
 
         //fire a raycast from player camera's center in the direction of the camera
         Vector3 raycastOrigin = playerCamera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.5f));
