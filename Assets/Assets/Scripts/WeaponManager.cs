@@ -7,7 +7,7 @@ public class WeaponManager : MonoBehaviour {
     private Camera playerCamera;
     private GameObject equippedWeapon = null;
     private GunProperty equippedWeaponProperty = null;
-    private Animator anim;
+    private Animator weaponAnimator;
     private ScreenUIManager screenUIManager;
     
     private int isAimingDownSightsHash = Animator.StringToHash("IsAimingDownSights");
@@ -15,11 +15,15 @@ public class WeaponManager : MonoBehaviour {
 
     private float lastFiredTime = 0;
 
+    private float reloadStartTime = -3;
+
+    enum State {Idle /*idle is when gun is at hip, and while aiming down sights*/, Reloading };
+    State currentState;
+    
     void Start() {
 
         screenUIManager = GameObject.Find("ScreenUI").GetComponent<ScreenUIManager>() as ScreenUIManager;
-
-        anim = gameObject.GetComponent<Animator>();
+        weaponAnimator = gameObject.GetComponent<Animator>();
 
         //find the game object that is holding this weapon. This will the highest object in the transform heirchy
         weaponOwner = gameObject.transform.root.gameObject;
@@ -38,6 +42,31 @@ public class WeaponManager : MonoBehaviour {
     void OnDisable() {
 
         unsubscribeFromEvents();
+    }
+
+    void enterState(State toEnter) {
+
+        if(toEnter == State.Reloading) {
+
+            reloadStartTime = Time.time;
+        }
+
+        currentState = toEnter;
+    }
+
+    void exitState() {
+
+        if(currentState == State.Reloading) {
+
+            reloadStartTime = -3;
+            screenUIManager.setAmmoDisplay(equippedWeaponProperty.bulletsInCurrentMagazine, equippedWeaponProperty.remainingBullets);
+        }
+    }
+
+    void changeState(State newState) {
+
+        exitState();
+        enterState(newState);
     }
 
     void subscribeToEvents() {
@@ -110,12 +139,32 @@ public class WeaponManager : MonoBehaviour {
         }
     }
 
+    void Update() {
+
+        if(currentState == State.Reloading) {
+
+            if(Time.time - reloadStartTime >= 2.5f) {
+
+                reload();
+                changeState(State.Idle);
+            }
+
+        } else if(currentState == State.Idle) {
+
+            if(shouldForceReload())
+                changeState(State.Reloading);
+        }
+    }
+
     public void onWeaponUse() {
 
-        if(checkCanFire()) {
+        if (checkCanFire()) {
+
+            if(currentState == State.Reloading)
+                changeState(State.Idle);
 
             fire();
-        }
+        } 
     }
 
     bool checkCanFire() {
@@ -132,10 +181,32 @@ public class WeaponManager : MonoBehaviour {
         return true;
     }
 
-    void fire() {
+    bool shouldForceReload() {
 
-        //for now just play the fire animation
-        anim.SetTrigger(firedTriggerHash);
+        if (equippedWeapon == null || equippedWeaponProperty == null)
+            return false;
+
+        if(equippedWeaponProperty.bulletsInCurrentMagazine > 0)
+            return false;
+
+        if(equippedWeaponProperty.remainingBullets == 0)
+            return false;
+
+        return true;
+    }
+
+    void reload() {
+        
+        int bulletsRequiredForFullMagazine = equippedWeaponProperty.bulletsPerMagazine - equippedWeaponProperty.bulletsInCurrentMagazine;
+        int refilledBullets = Mathf.Min(bulletsRequiredForFullMagazine, equippedWeaponProperty.remainingBullets);
+
+        equippedWeaponProperty.bulletsInCurrentMagazine += refilledBullets;
+        equippedWeaponProperty.remainingBullets -= refilledBullets;
+    }
+
+    void fire() {
+       
+        weaponAnimator.SetTrigger(firedTriggerHash);
         lastFiredTime = Time.time;
 
         //handle ammo
@@ -163,6 +234,14 @@ public class WeaponManager : MonoBehaviour {
 
     void checkAimDownSight(bool isAimingDownSight) {
 
-        anim.SetBool(isAimingDownSightsHash, isAimingDownSight);
+        if(currentState == State.Reloading) {
+
+            isAimingDownSight = shouldForceReload() ? false : isAimingDownSight;
+
+            if(isAimingDownSight)
+                changeState(State.Idle);
+        }
+
+        weaponAnimator.SetBool(isAimingDownSightsHash, isAimingDownSight);
     }
 }

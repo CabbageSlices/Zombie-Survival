@@ -139,7 +139,7 @@ namespace UnityStandardAssets.Characters.ThirdPerson
 				m_Animator.SetFloat("JumpLeg", jumpLeg);
 			}
 
-			// the anim speed multiplier allows the overall speed of walking/running to be tweaked in the inspector,
+			// the weaponAnimator speed multiplier allows the overall speed of walking/running to be tweaked in the inspector,
 			// which affects the movement speed because of the root motion.
 			if (m_IsGrounded && move.magnitude > 0)
 			{
