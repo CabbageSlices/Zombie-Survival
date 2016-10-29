@@ -8,15 +8,23 @@ public class InputManager : MonoBehaviour {
 
     public event ButtonDownResponse isPressingAim;
     public event InputResponse onWeaponPrimary;
+    public event InputResponse onReload;
+    public event InputResponse onAimDownSight;
 	
 	// Update is called once per frame
 	void Update () {
-	    
-        if(Input.GetMouseButton(0) && onWeaponPrimary != null) { 
-            onWeaponPrimary();
-        }
 
-        if(isPressingAim != null)
+        if(Input.GetKeyDown(KeyCode.R) && onReload != null)
+            onReload();
+
+        if(Input.GetMouseButtonDown(1) && onAimDownSight != null)
+            onAimDownSight();
+
+        if (Input.GetMouseButton(0) && onWeaponPrimary != null)
+            onWeaponPrimary();
+        
+
+        if (isPressingAim != null)
             isPressingAim(Input.GetMouseButton(1));
 	}
 }

@@ -12,10 +12,10 @@ public class WeaponManager : MonoBehaviour {
     
     private int isAimingDownSightsHash = Animator.StringToHash("IsAimingDownSights");
     private int firedTriggerHash = Animator.StringToHash("Fired");
+    private int startReloadingHash = Animator.StringToHash("StartReloading");
+    private int stopReloadingHash = Animator.StringToHash("StopReloading");
 
     private float lastFiredTime = 0;
-
-    private float reloadStartTime = -3;
 
     enum State {Idle /*idle is when gun is at hip, and while aiming down sights*/, Reloading };
     State currentState;
@@ -47,8 +47,9 @@ public class WeaponManager : MonoBehaviour {
     void enterState(State toEnter) {
 
         if(toEnter == State.Reloading) {
-
-            reloadStartTime = Time.time;
+            
+            weaponAnimator.SetTrigger(startReloadingHash);
+            weaponAnimator.ResetTrigger(stopReloadingHash);
         }
 
         currentState = toEnter;
@@ -57,9 +58,10 @@ public class WeaponManager : MonoBehaviour {
     void exitState() {
 
         if(currentState == State.Reloading) {
-
-            reloadStartTime = -3;
+            
             screenUIManager.setAmmoDisplay(equippedWeaponProperty.bulletsInCurrentMagazine, equippedWeaponProperty.remainingBullets);
+            weaponAnimator.SetTrigger(stopReloadingHash);
+            weaponAnimator.ResetTrigger(startReloadingHash);
         }
     }
 
@@ -75,6 +77,8 @@ public class WeaponManager : MonoBehaviour {
 
             weaponOwner.GetComponent<InputManager>().onWeaponPrimary += onWeaponUse;
             weaponOwner.GetComponent<InputManager>().isPressingAim += checkAimDownSight;
+            weaponOwner.GetComponent<InputManager>().onReload += onReload;
+            weaponOwner.GetComponent<InputManager>().onAimDownSight += onAimDownSight;
         }
     }
 
@@ -84,6 +88,8 @@ public class WeaponManager : MonoBehaviour {
 
             weaponOwner.GetComponent<InputManager>().onWeaponPrimary += onWeaponUse;
             weaponOwner.GetComponent<InputManager>().isPressingAim -= checkAimDownSight;
+            weaponOwner.GetComponent<InputManager>().onReload -= onReload;
+            weaponOwner.GetComponent<InputManager>().onAimDownSight -= onAimDownSight;
         }
     }
 
@@ -141,15 +147,7 @@ public class WeaponManager : MonoBehaviour {
 
     void Update() {
 
-        if(currentState == State.Reloading) {
-
-            if(Time.time - reloadStartTime >= 2.5f) {
-
-                reload();
-                changeState(State.Idle);
-            }
-
-        } else if(currentState == State.Idle) {
+        if(currentState == State.Idle) {
 
             if(shouldForceReload())
                 changeState(State.Reloading);
@@ -158,18 +156,28 @@ public class WeaponManager : MonoBehaviour {
 
     public void onWeaponUse() {
 
-        if (checkCanFire()) {
+        if (currentState == State.Idle && checkCanFire()) {
 
-            if(currentState == State.Reloading)
-                changeState(State.Idle);
+            
 
             fire();
         } 
     }
 
+    public void onReload() {
+
+        if(currentState != State.Reloading && checkCanReload())
+            changeState(State.Reloading);
+    }
+
+    bool isWeaponEquipped() {
+
+        return equippedWeapon != null && equippedWeaponProperty != null;
+    }
+
     bool checkCanFire() {
 
-        if(equippedWeapon == null || equippedWeaponProperty == null)
+        if(!isWeaponEquipped())
             return false;
 
         if(Time.time - lastFiredTime < equippedWeaponProperty.fireDelay)
@@ -181,12 +189,12 @@ public class WeaponManager : MonoBehaviour {
         return true;
     }
 
-    bool shouldForceReload() {
+    bool checkCanReload() {
 
-        if (equippedWeapon == null || equippedWeaponProperty == null)
+        if(!isWeaponEquipped())
             return false;
 
-        if(equippedWeaponProperty.bulletsInCurrentMagazine > 0)
+        if(equippedWeaponProperty.bulletsInCurrentMagazine >= equippedWeaponProperty.bulletsPerMagazine)
             return false;
 
         if(equippedWeaponProperty.remainingBullets == 0)
@@ -195,13 +203,19 @@ public class WeaponManager : MonoBehaviour {
         return true;
     }
 
-    void reload() {
+    bool shouldForceReload() {
+
+        return checkCanReload() && equippedWeaponProperty.bulletsInCurrentMagazine == 0;
+    }
+
+    public void reload() {
         
         int bulletsRequiredForFullMagazine = equippedWeaponProperty.bulletsPerMagazine - equippedWeaponProperty.bulletsInCurrentMagazine;
         int refilledBullets = Mathf.Min(bulletsRequiredForFullMagazine, equippedWeaponProperty.remainingBullets);
 
         equippedWeaponProperty.bulletsInCurrentMagazine += refilledBullets;
         equippedWeaponProperty.remainingBullets -= refilledBullets;
+        changeState(State.Idle);
     }
 
     void fire() {
@@ -232,16 +246,31 @@ public class WeaponManager : MonoBehaviour {
         }
     }
 
+    //two events to check if useri s aiming down sights
+    //this function puts user in the aim donw sights state as long as he isn't reloading
+    //this way a user can hold the aim down sights key, reload, and return to aiming down sights without having to
+    //press the button again.
     void checkAimDownSight(bool isAimingDownSight) {
 
-        if(currentState == State.Reloading) {
+        /*if(currentState == State.Reloading) {
 
             isAimingDownSight = shouldForceReload() ? false : isAimingDownSight;
 
             if(isAimingDownSight)
                 changeState(State.Idle);
-        }
+        }*/
+
+        isAimingDownSight = isAimingDownSight && currentState == State.Idle;
 
         weaponAnimator.SetBool(isAimingDownSightsHash, isAimingDownSight);
+    }
+
+    //all this should do is, if user is reloading then stop reloading and go back to aiming down sights
+    void onAimDownSight() {
+
+        if (currentState == State.Reloading && !shouldForceReload()) {
+
+            changeState(State.Idle);
+        }
     }
 }
