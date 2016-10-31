@@ -7,10 +7,13 @@ public class InputManager : MonoBehaviour {
     public delegate void ButtonDownResponse(bool isButtonHeldDown);
 
     public event ButtonDownResponse isPressingAim;
+    public event ButtonDownResponse isSprinting;
     public event InputResponse onWeaponPrimary;
     public event InputResponse onReload;
     public event InputResponse onAimDownSight;
 	
+    private 
+
 	// Update is called once per frame
 	void Update () {
 
@@ -26,5 +29,11 @@ public class InputManager : MonoBehaviour {
 
         if (isPressingAim != null)
             isPressingAim(Input.GetMouseButton(1));
+
+        //player is sprinting if he is holding the sprint key and moving 
+        bool isMoving = Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0;
+
+        if(isSprinting != null)
+            isSprinting(isMoving && Input.GetKey(KeyCode.LeftShift));
 	}
 }

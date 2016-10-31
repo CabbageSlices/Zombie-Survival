@@ -14,11 +14,12 @@ public class WeaponManager : MonoBehaviour {
     private int firedTriggerHash = Animator.StringToHash("Fired");
     private int startReloadingHash = Animator.StringToHash("StartReloading");
     private int stopReloadingHash = Animator.StringToHash("StopReloading");
+    private int isSprintingHash = Animator.StringToHash("IsSprinting");
 
     private float lastFiredTime = 0;
 
-    enum State {Idle /*idle is when gun is at hip, and while aiming down sights*/, Reloading };
-    State currentState;
+    enum State {Idle /*idle is when gun is at hip, and while aiming down sights*/, Reloading, Sprinting };
+    State currentState = State.Idle;
     
     void Start() {
 
@@ -50,6 +51,10 @@ public class WeaponManager : MonoBehaviour {
             
             weaponAnimator.SetTrigger(startReloadingHash);
             weaponAnimator.ResetTrigger(stopReloadingHash);
+
+        } else if(toEnter == State.Sprinting) {
+
+            weaponAnimator.SetBool(isSprintingHash, true);
         }
 
         currentState = toEnter;
@@ -62,7 +67,12 @@ public class WeaponManager : MonoBehaviour {
             screenUIManager.setAmmoDisplay(equippedWeaponProperty.bulletsInCurrentMagazine, equippedWeaponProperty.remainingBullets);
             weaponAnimator.SetTrigger(stopReloadingHash);
             weaponAnimator.ResetTrigger(startReloadingHash);
+
+        } else if(currentState == State.Sprinting){
+
+            weaponAnimator.SetBool(isSprintingHash, false);
         }
+
     }
 
     void changeState(State newState) {
@@ -79,6 +89,7 @@ public class WeaponManager : MonoBehaviour {
             weaponOwner.GetComponent<InputManager>().isPressingAim += checkAimDownSight;
             weaponOwner.GetComponent<InputManager>().onReload += onReload;
             weaponOwner.GetComponent<InputManager>().onAimDownSight += onAimDownSight;
+            weaponOwner.GetComponent<InputManager>().isSprinting += checkSprinting;
         }
     }
 
@@ -90,6 +101,7 @@ public class WeaponManager : MonoBehaviour {
             weaponOwner.GetComponent<InputManager>().isPressingAim -= checkAimDownSight;
             weaponOwner.GetComponent<InputManager>().onReload -= onReload;
             weaponOwner.GetComponent<InputManager>().onAimDownSight -= onAimDownSight;
+            weaponOwner.GetComponent<InputManager>().isSprinting -= checkSprinting;
         }
     }
 
@@ -157,9 +169,7 @@ public class WeaponManager : MonoBehaviour {
     public void onWeaponUse() {
 
         if (currentState == State.Idle && checkCanFire()) {
-
             
-
             fire();
         } 
     }
@@ -252,14 +262,6 @@ public class WeaponManager : MonoBehaviour {
     //press the button again.
     void checkAimDownSight(bool isAimingDownSight) {
 
-        /*if(currentState == State.Reloading) {
-
-            isAimingDownSight = shouldForceReload() ? false : isAimingDownSight;
-
-            if(isAimingDownSight)
-                changeState(State.Idle);
-        }*/
-
         isAimingDownSight = isAimingDownSight && currentState == State.Idle;
 
         weaponAnimator.SetBool(isAimingDownSightsHash, isAimingDownSight);
@@ -269,6 +271,19 @@ public class WeaponManager : MonoBehaviour {
     void onAimDownSight() {
 
         if (currentState == State.Reloading && !shouldForceReload()) {
+
+            changeState(State.Idle);
+        }
+    }
+
+    void checkSprinting(bool isSprinting) {
+
+        if(isSprinting && currentState != State.Sprinting) {
+
+            changeState(State.Sprinting);
+        }
+
+        if(!isSprinting && currentState == State.Sprinting) {
 
             changeState(State.Idle);
         }
