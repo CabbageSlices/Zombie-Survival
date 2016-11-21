@@ -9,6 +9,7 @@ public class WeaponManager : MonoBehaviour {
     private GunProperty equippedWeaponProperty = null;
     private Animator weaponAnimator;
     private ScreenUIManager screenUIManager;
+    private ObjectiveManager objectiveManager;
     
     private int isAimingDownSightsHash = Animator.StringToHash("IsAimingDownSights");
     private int firedTriggerHash = Animator.StringToHash("Fired");
@@ -23,6 +24,7 @@ public class WeaponManager : MonoBehaviour {
     
     void Start() {
 
+        objectiveManager = GameObject.Find("ObjectiveManager").GetComponent<ObjectiveManager>() as ObjectiveManager;
         screenUIManager = GameObject.Find("ScreenUI").GetComponent<ScreenUIManager>() as ScreenUIManager;
         weaponAnimator = gameObject.GetComponent<Animator>();
 
@@ -123,6 +125,8 @@ public class WeaponManager : MonoBehaviour {
         weapon.transform.localRotation = Quaternion.Euler(0, 0, 0);
 
         screenUIManager.showAmmoDisplay(equippedWeaponProperty.bulletsInCurrentMagazine, equippedWeaponProperty.remainingBullets);
+
+        objectiveManager.handleWeaponPickup(equippedWeaponProperty.type);
     }
 
     void unequipCurrentWeapon() {

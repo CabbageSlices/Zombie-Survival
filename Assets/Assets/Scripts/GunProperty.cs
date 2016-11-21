@@ -9,4 +9,8 @@ public class GunProperty : MonoBehaviour {
     public int bulletsPerMagazine = 5;
     public int bulletsInCurrentMagazine = 5;
     public int remainingBullets = 25;
+
+    public enum WeaponType {Gun};
+
+    public WeaponType type = WeaponType.Gun;
 }
