@@ -53,13 +53,12 @@ public class ObjectiveManager : MonoBehaviour {
             onObjectiveFinish(objective);
     }
 
-    public void handleWeaponPickup(GunProperty.WeaponType weaponType) {
+    public void handleWeaponPickup(WeaponProperty.WeaponType weaponType) {
         
         for(int i = equipWeaponObjectives.Count - 1; i >= 0; --i) {
 
             if(equipWeaponObjectives[i].completionCondition.requiredWeaponType == weaponType)
                 finishObjective(equipWeaponObjectives[i]);
         }
-            
     }
 }

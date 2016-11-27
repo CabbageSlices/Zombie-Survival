@@ -7,7 +7,7 @@ public class PickUpInteraction : InteractableAbstract {
     public override void handleInteraction(GameObject player) {
 
         //make the player equip this item
-        player.GetComponentInChildren<WeaponManager>().equip(gameObject);
+        player.GetComponentInChildren<WeaponEquipmentManager>().equip(gameObject);
     }
 
     public override string getInteractionName() {

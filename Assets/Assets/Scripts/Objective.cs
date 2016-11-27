@@ -8,7 +8,7 @@ public class Objective {
     //ex: only objectives of type EquipWeapon will use the requiredWeapon field, otherwise it will be left blank
     public class ObjectiveCompletionCondition {
 
-        public GunProperty.WeaponType requiredWeaponType;
+        public WeaponProperty.WeaponType requiredWeaponType;
     }
 
     //type of objective determines which event causes the objective to progress
